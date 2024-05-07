@@ -31,7 +31,7 @@ export default function Welcome() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#38a69d',
+    backgroundColor: '#739489',
     justifyContent: 'center',
     alignItems: 'center',
   },
