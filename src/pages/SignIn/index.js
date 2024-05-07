@@ -13,6 +13,17 @@ export default function SignIn() {
     console.log("Autenticar com o Facebook");
   };
 
+  const handleAcesso = () => {
+    // Lógica para autenticação com Facebook
+    console.log("Acessado");
+  };
+
+  const handleCriarConta = () => {
+    // Lógica para autenticação com Facebook
+    console.log("Cadastrar");
+  };
+
+
   return (
     <View style={styles.container}>
       <Animatable.View animation="fadeInLeft" delay={500} style={styles.containerHeader}>
@@ -26,7 +37,7 @@ export default function SignIn() {
         <Text style={styles.title}>Senha</Text>
         <TextInput placeholder='Digite a senha' style={styles.input}></TextInput>
 
-        <TouchableOpacity style={styles.button}>
+        <TouchableOpacity style={styles.button} onPress={handleAcesso}>
           <Text style={styles.buttonText}>Acessar</Text>
         </TouchableOpacity>
 
@@ -42,7 +53,7 @@ export default function SignIn() {
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity style={styles.buttonRegister}>
+        <TouchableOpacity style={styles.buttonRegister} onPress={handleCriarConta}>
           <Text style={styles.registerText}>Não possui uma conta? Cadastre-se</Text>
         </TouchableOpacity>
       </Animatable.View>
