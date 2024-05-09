@@ -2,6 +2,54 @@ import React from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image } from 'react-native';
 import * as Animatable from "react-native-animatable";
 
+
+
+import mysql from 'mysql';
+
+const connection = mysql.createConnection({
+  host: 'Kayke',
+  user: 'Kayke',
+  password: 'Cleo250270',
+  database: 'seu_banco_de_dados_mysql',
+});
+
+connection.connect((err) => {
+  if (err) {
+    console.error('Erro ao conectar ao banco de dados:', err.stack);
+    return;
+  }
+  console.log('Conexão bem-sucedida ao banco de dados MySQL.');
+});
+
+
+
+
+
+
+
+
+const username = 'usuario';
+const password = 'senha';
+
+connection.query(
+  'SELECT * FROM usuarios WHERE username = ? AND password = ?',
+  [username, password],
+  (error, results, fields) => {
+    if (error) {
+      console.error('Erro ao executar a consulta:', error.stack);
+      return;
+    }
+    console.log('Resultado da consulta:', results);
+    // Lógica para lidar com o resultado da consulta (por exemplo, autenticação do usuário).
+  }
+);
+
+
+
+
+
+
+
 export default function SignIn() {
   const handleGoogleSignIn = () => {
     // Lógica para autenticação com Google
