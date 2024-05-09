@@ -7,10 +7,10 @@ import * as Animatable from "react-native-animatable";
 import mysql from 'mysql';
 
 const connection = mysql.createConnection({
-  host: 'Kayke',
-  user: 'Kayke',
-  password: 'Cleo250270',
-  database: 'seu_banco_de_dados_mysql',
+  host: 'localhost',
+  user: 'root',
+  password: '123456',
+  database: 'bancoteste',
 });
 
 connection.connect((err) => {
