@@ -1,8 +1,12 @@
 import React from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image } from 'react-native';
 import * as Animatable from "react-native-animatable";
+import { useNavigation } from '@react-navigation/native';
+
 
 export default function SignIn() {
+  const navigation = useNavigation();
+
   const handleGoogleSignIn = () => {
     // Lógica para autenticação com Google
     console.log("Autenticar com o Google");
@@ -37,7 +41,7 @@ export default function SignIn() {
         <Text style={styles.title}>Senha</Text>
         <TextInput placeholder='Digite a senha' style={styles.input}></TextInput>
 
-        <TouchableOpacity style={styles.button} onPress={handleAcesso}>
+        <TouchableOpacity style={styles.button}onPress={() => navigation.navigate('HomePage')}>
           <Text style={styles.buttonText}>Acessar</Text>
         </TouchableOpacity>
 
@@ -53,8 +57,8 @@ export default function SignIn() {
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity style={styles.buttonRegister} onPress={handleCriarConta}>
-          <Text style={styles.registerText}>Não possui uma conta? Cadastre-se</Text>
+        <TouchableOpacity style={styles.buttonRegister} onPress={() => navigation.navigate('SignUp')}>
+          <Text style={styles.registerText}> Não possui uma conta? Cadastre-se</Text>
         </TouchableOpacity>
       </Animatable.View>
     </View>
