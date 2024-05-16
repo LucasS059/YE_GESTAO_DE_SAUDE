@@ -4,6 +4,7 @@ import * as Animatable from "react-native-animatable";
 import { useNavigation } from '@react-navigation/native';
 
 
+
 export default function SignIn() {
   const navigation = useNavigation();
 
@@ -137,3 +138,81 @@ const styles = StyleSheet.create({
     color: '#A1A1A1'
   }
 });
+
+
+
+// import React, { useState } from 'react';
+// import { View, Text, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
+
+// export default function MedicationDateTime() {
+//   const [date, setDate] = useState('');
+//   const [time, setTime] = useState('');
+
+//   const handleMedication = () => {
+//     // Lógica para salvar a data e hora da medicação
+//     console.log("Data:", date);
+//     console.log("Hora:", time);
+//   };
+
+//   return (
+//     <View style={styles.container}>
+//       <Text style={styles.title}>Agendar Medicação</Text>
+//       <View style={styles.inputContainer}>
+//         <TextInput
+//           style={styles.input}
+//           placeholder="Data (DD/MM/AAAA)"
+//           value={date}
+//           onChangeText={(text) => setDate(text)}
+//         />
+//         <TextInput
+//           style={styles.input}
+//           placeholder="Hora (HH:MM)"
+//           value={time}
+//           onChangeText={(text) => setTime(text)}
+//         />
+//       </View>
+//       <TouchableOpacity
+//         style={styles.button}
+//         onPress={handleMedication}
+//       >
+//         <Text style={styles.buttonText}>Agendar</Text>
+//       </TouchableOpacity>
+//     </View>
+//   );
+// };
+
+// const styles = StyleSheet.create({
+//   container: {
+//     flex: 1,
+//     justifyContent: 'center',
+//     alignItems: 'center',
+//     backgroundColor: '#739489',
+//   },
+//   title: {
+//     fontSize: 28,
+//     marginBottom: 20,
+//     fontWeight: 'bold',
+//     color: 'white',
+//   },
+//   inputContainer: {
+//     width: '80%',
+//     marginBottom: 20,
+//   },
+//   input: {
+//     backgroundColor: '#FFFFFF',
+//     borderRadius: 10,
+//     paddingHorizontal: 10,
+//     marginBottom: 10,
+//   },
+//   button: {
+//     backgroundColor: '#38a69d',
+//     borderRadius: 20,
+//     paddingVertical: 10,
+//     paddingHorizontal: 20,
+//   },
+//   buttonText: {
+//     fontSize: 18,
+//     color: 'white',
+//   },
+// });
+
