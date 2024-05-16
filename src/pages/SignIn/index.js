@@ -2,15 +2,6 @@ import React from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image } from 'react-native';
 import * as Animatable from "react-native-animatable";
 
-
-
-
-
-
-
-
-
-
 export default function SignIn() {
   const handleGoogleSignIn = () => {
     // Lógica para autenticação com Google
