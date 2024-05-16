@@ -19,11 +19,11 @@ export default function Welcome() {
                     style={styles.square}
                     onPress={(handleTeste)}
                 >
-                    <Text style={styles.buttonText}>Exame 1</Text>
+                    <Text style={styles.buttonText}>Agendamento Medicação</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                     style={styles.square}
-                    onPress={(handleTeste)}
+                    onPress={ () => navigation.navigate('Agendamento')}
                 >
                     <Text style={styles.buttonText}>Exame 2</Text>
                 </TouchableOpacity>
