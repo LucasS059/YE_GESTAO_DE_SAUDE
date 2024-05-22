@@ -23,7 +23,7 @@ export default function Welcome() {
                 </TouchableOpacity>
                 <TouchableOpacity
                     style={styles.square}
-                    onPress={ () => navigation.navigate('Agendamento')}
+                    
                 >
                     <Text style={styles.buttonText}>Exame 2</Text>
                 </TouchableOpacity>
