@@ -6,7 +6,6 @@ import { Header } from '@react-navigation/stack';
 import HomePage from '../pages/HomePage';
 import SignUp from '../pages/SignUp';
 import Agenda from "../pages/Agenda";
-import  Agendamento  from "../pages/Agendamento";
 // import { Camera } from 'expo-camera';
 
 const Stack = createNativeStackNavigator();
@@ -19,9 +18,7 @@ export default function Routes() {
             <Stack.Screen name="SignUp" component={SignUp} options={{headerShown: false}}/>
             <Stack.Screen name="HomePage" component={HomePage} options={{headerShown: false}}/>
             <Stack.Screen name="Agenda" component={Agenda} options={{headerShown: false}}/>
-
             {/* <Stack.Screen name="Cam" component={Cam} options={{headerShown: false}}/> */}
-            {/* <Stack.Screen name="Agendamento" component={Agendamento} options={{headerShown: false}}/> */}
         </Stack.Navigator>   
     );
 }
