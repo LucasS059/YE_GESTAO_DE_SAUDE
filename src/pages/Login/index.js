@@ -3,9 +3,7 @@ import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image } from 'reac
 import * as Animatable from "react-native-animatable";
 import { useNavigation } from '@react-navigation/native';
 
-
-
-export default function SignIn() {
+export default function Login() {
   const navigation = useNavigation();
 
   const handleGoogleSignIn = () => {
@@ -19,54 +17,48 @@ export default function SignIn() {
   };
 
   const handleAcesso = () => {
-    // Lógica para autenticação com Facebook
+    // Lógica para acesso
     console.log("Acessado");
   };
 
-  const handleCriarConta = () => {
-    // Lógica para autenticação com Facebook
-    console.log("Cadastrar");
-  };
-
-
   return (
-    <View style={styles.container}>
-      <Animatable.View animation="fadeInLeft" delay={500} style={styles.containerHeader}>
-        <Text style={styles.message}>Bem Vindo(a)</Text>
+    <View style={estilos.container}>
+      <Animatable.View animation="fadeInLeft" delay={500} style={estilos.containerHeader}>
+        <Text style={estilos.message}>Bem Vindo(a)</Text>
       </Animatable.View>
 
-      <Animatable.View animatable="fadeInUp" style={styles.containerForm}>
-        <Text style={styles.title}>Email</Text>
-        <TextInput placeholder='Digite um email' style={styles.input}></TextInput>
+      <Animatable.View animation="fadeInUp" style={estilos.containerForm}>
+        <Text style={estilos.title}>Email</Text>
+        <TextInput placeholder='Digite seu email' style={estilos.input} keyboardType="email-address" />
 
-        <Text style={styles.title}>Senha</Text>
-        <TextInput placeholder='Digite a senha' style={styles.input}></TextInput>
+        <Text style={estilos.title}>Senha</Text>
+        <TextInput placeholder='Digite sua senha' style={estilos.input} secureTextEntry />
 
-        <TouchableOpacity style={styles.button}onPress={() => navigation.navigate('HomePage')}>
-          <Text style={styles.buttonText}>Acessar</Text>
+        <TouchableOpacity style={estilos.button} onPress={() => navigation.navigate('TelaPrincipal')}>
+          <Text style={estilos.buttonText}>Acessar</Text>
         </TouchableOpacity>
 
-        <Text style={styles.orText}>OU</Text>
+        <Text style={estilos.orText}>OU</Text>
 
-        <View style={styles.socialButtonsContainer}>
-          <TouchableOpacity style={styles.socialButton} onPress={handleGoogleSignIn}>
-            <Image source={require('../../assets/logo_google.png')} style={styles.socialLogo} />
+        <View style={estilos.socialButtonsContainer}>
+          <TouchableOpacity style={estilos.socialButton} onPress={handleGoogleSignIn}>
+            <Image source={require('../../assets/logo_google.png')} style={estilos.socialLogo} />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.socialButton} onPress={handleFacebookSignIn}>
-            <Image source={require('../../assets/logo_facebook.png')} style={styles.socialLogo} />
+          <TouchableOpacity style={estilos.socialButton} onPress={handleFacebookSignIn}>
+            <Image source={require('../../assets/logo_facebook.png')} style={estilos.socialLogo} />
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity style={styles.buttonRegister} onPress={() => navigation.navigate('SignUp')}>
-          <Text style={styles.registerText}> Não possui uma conta? Cadastre-se</Text>
+        <TouchableOpacity style={estilos.buttonRegister} onPress={() => navigation.navigate('Cadastro')}>
+          <Text style={estilos.registerText}>Não possui uma conta? Cadastre-se</Text>
         </TouchableOpacity>
       </Animatable.View>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const estilos = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#739489'
@@ -87,17 +79,21 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 25,
     borderTopRightRadius: 25,
     paddingStart: '5%',
-    paddingEnd: '5%'
+    paddingEnd: '5%',
+    paddingTop: 25,
   },
   title: {
     fontSize: 20,
-    marginTop: 28
+    marginTop: 28,
+    color: '#333'
   },
   input: {
     borderBottomWidth: 1,
     height: 40,
     marginBottom: 12,
-    fontSize: 16
+    fontSize: 16,
+    borderColor: '#ccc',
+    paddingLeft: 10
   },
   button: {
     backgroundColor: '#38a69d',
@@ -109,7 +105,7 @@ const styles = StyleSheet.create({
     alignItems: 'center'
   },
   buttonText: {
-    color: '#Fff',
+    color: '#fff',
     fontSize: 18,
     fontWeight: 'bold'
   },
@@ -138,6 +134,3 @@ const styles = StyleSheet.create({
     color: '#A1A1A1'
   }
 });
-
-
-

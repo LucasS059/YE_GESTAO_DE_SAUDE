@@ -1,15 +1,19 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, KeyboardAvoidingView, Platform, ScrollView, FlatList } from 'react-native';
 
 export default function Agenda() {
   const [medicationName, setMedicationName] = useState('');
   const [time, setTime] = useState('');
+  const [medicationsList, setMedicationsList] = useState([]);
 
   const handleMedication = () => {
     if (!medicationName || !time) {
       Alert.alert('Campos obrigatórios', 'Por favor, preencha todos os campos.');
       return;
     }
+
+    const newMedication = { id: Date.now().toString(), name: medicationName, time: time };
+    setMedicationsList([...medicationsList, newMedication]);
 
     console.log("Medicamento:", medicationName);
     console.log("Hora:", time);
@@ -28,13 +32,20 @@ export default function Agenda() {
     setTime(formatted);
   };
 
+  const renderItem = ({ item }) => (
+    <View style={styles.medicationItem}>
+      <Text>{item.name}</Text>
+      <Text>{item.time}</Text>
+    </View>
+  );
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.container}
     >
       <ScrollView contentContainerStyle={styles.scrollViewContent}>
-        <Text style={styles.title}>Agendar Medicação</Text>
+        <Text style={[styles.title, Platform.OS === 'ios' ? styles.titleIOS : styles.titleAndroid]}>Agendar Medicação</Text>
         <TextInput
           style={styles.input}
           placeholder="Nome do Medicamento"
@@ -55,6 +66,12 @@ export default function Agenda() {
         >
           <Text style={styles.buttonText}>Agendar</Text>
         </TouchableOpacity>
+        <FlatList
+          data={medicationsList}
+          renderItem={renderItem}
+          keyExtractor={item => item.id}
+          style={styles.list}
+        />
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -77,6 +94,12 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     fontWeight: 'bold',
     color: 'white',
+  },
+  titleIOS: {
+    marginTop: 40,
+  },
+  titleAndroid: {
+    marginTop: 20,
   },
   input: {
     backgroundColor: '#FFFFFF',
@@ -107,5 +130,21 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: 'white',
     textAlign: 'center',
+  },
+  list: {
+    marginTop: 20,
+    width: '100%',
+  },
+  medicationItem: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 10,
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    marginBottom: 10,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 1.41,
   },
 });

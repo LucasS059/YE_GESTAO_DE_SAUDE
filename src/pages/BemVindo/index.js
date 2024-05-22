@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image } from 'reac
 import { useNavigation } from '@react-navigation/native'; 
 import * as Animatable from "react-native-animatable";
 
-export default function Welcome() {
+export default function BemVindo() {
   const navigation = useNavigation();
   return (
     <View style={styles.container}>
@@ -20,7 +20,7 @@ export default function Welcome() {
         <Text style={styles.title}>Monitore e organize suas consultas de qualquer lugar</Text>
         <Text style={styles.text}>Faça Login para acessar sua conta</Text>
 
-        <TouchableOpacity style={styles.button} onPress={ () => navigation.navigate('SignIn')}>
+        <TouchableOpacity style={styles.button} onPress={ () => navigation.navigate('Login')}>
           <Text style={styles.buttonText}>Acessar</Text>
         </TouchableOpacity>
       </Animatable.View>

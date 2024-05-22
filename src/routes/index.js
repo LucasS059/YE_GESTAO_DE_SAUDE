@@ -1,24 +1,23 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import Welcome from "../pages/Welcome";
-import SignIn from "../pages/SignIn"; 
-import { Header } from '@react-navigation/stack';
-import HomePage from '../pages/HomePage';
-import SignUp from '../pages/SignUp';
-import Agenda from "../pages/Agenda";
-// import { Camera } from 'expo-camera';
+import BemVindo from "../pages/BemVindo";
+import Login from "../pages/Login"; 
+import TelaPrincipal from '../pages/TelaPrincipal';
+import Cadastro from '../pages/Cadastro';
+import Medicacao from "../pages/Medicacao";
+import Geral from "../pages/Geral";
 
 const Stack = createNativeStackNavigator();
 
 export default function Routes() {
     return (
         <Stack.Navigator>
-            <Stack.Screen name="Welcome" component={Welcome} options={{headerShown: false}} />
-            <Stack.Screen name="SignIn" component={SignIn} options={{headerShown: false}}/>
-            <Stack.Screen name="SignUp" component={SignUp} options={{headerShown: false}}/>
-            <Stack.Screen name="HomePage" component={HomePage} options={{headerShown: false}}/>
-            <Stack.Screen name="Agenda" component={Agenda} options={{headerShown: false}}/>
-            {/* <Stack.Screen name="Cam" component={Cam} options={{headerShown: false}}/> */}
-        </Stack.Navigator>   
+            <Stack.Screen name="BemVindo" component={BemVindo} options={{ headerShown: false }} />
+            <Stack.Screen name="Login" component={Login} options={{ headerShown: false }} />
+            <Stack.Screen name="Cadastro" component={Cadastro} options={{ headerShown: false }} />
+            <Stack.Screen name="TelaPrincipal" component={TelaPrincipal} options={{ headerShown: false }} />
+            <Stack.Screen name="Medicacao" component={Medicacao} options={{ headerShown: false }} />
+            <Stack.Screen name="Geral" component={Geral} options={{ headerShown: false }} />
+        </Stack.Navigator>
     );
 }
