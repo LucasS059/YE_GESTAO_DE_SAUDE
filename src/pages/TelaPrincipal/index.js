@@ -13,9 +13,9 @@ export default function TelaPrincipal() {
     <View style={estilos.container}>
       <Text style={estilos.titulo}>Bem-vindo ao Aplicativo</Text>
     
-      <TouchableOpacity style={estilos.containerQuadrado} onPress={() => navigation.navigate('Geral')}>
+      <TouchableOpacity style={estilos.containerQuadrado} onPress={() => navigation.navigate('Telamedicao')}>
         <View style={estilos.quadrado}>
-          <Text style={estilos.textoBotao}>Averição</Text>
+          <Text style={estilos.textoBotao}>Aferições</Text>
         </View>
       </TouchableOpacity>
         
