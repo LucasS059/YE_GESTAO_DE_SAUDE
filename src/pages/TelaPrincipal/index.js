@@ -25,7 +25,7 @@ export default function TelaPrincipal() {
         </View>
       </TouchableOpacity>
 
-      <TouchableOpacity style={estilos.containerQuadrado} onPress={handleTeste}>
+      <TouchableOpacity style={estilos.containerQuadrado} onPress={() => navigation.navigate('Consulta')}>
         <View style={estilos.quadrado}>
           <Text style={estilos.textoBotao}>Consultas</Text>
         </View>

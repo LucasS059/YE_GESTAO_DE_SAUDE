@@ -6,7 +6,8 @@ import TelaPrincipal from '../pages/TelaPrincipal';
 import Cadastro from '../pages/Cadastro';
 import Medicacao from "../pages/Medicacao";
 import Telamedicao from "../pages/Telamedicao";
-import Historicoafericao from "../pages/Telamedicao/Historicoafericao"
+import Historicoafericao from "../pages/Telamedicao/Historicoafericao";
+import Consulta from "../pages/Consulta";
 
 const Stack = createNativeStackNavigator();
 
@@ -20,7 +21,8 @@ export default function Routes() {
             <Stack.Screen name="Medicacao" component={Medicacao} options={{ headerShown: false }} />
             <Stack.Screen name="Telamedicao" component={Telamedicao} options={{ headerShown: false }} />
             <Stack.Screen name="Historicoafericao" component={Historicoafericao} options={{ headerShown: false }} />
-            
+            <Stack.Screen name="Consulta" component={Consulta} options={{ headerShown: false }} />
+
         </Stack.Navigator>
     );
 }
