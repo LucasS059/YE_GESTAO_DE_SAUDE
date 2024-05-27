@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, Button, TextInput, StyleSheet, FlatList, Animated } from 'react-native';
+import { View, Text, Button, TextInput, StyleSheet, FlatList, Animated, TouchableOpacity } from 'react-native';
 
 export default function Consulta() {
     const [consultations, setConsultations] = useState([]);
@@ -23,11 +23,7 @@ export default function Consulta() {
         };
         setConsultations(prevConsultations => [...prevConsultations, newConsultation]);
         // Limpa os campos após agendar a consulta
-        setName('');
-        setReason('');
-        setDate('');
-        setTime('');
-        setSpecialty('');
+        clearFields();
         // Esconde a seção de agendamento após agendar a consulta
         setShowScheduler(false);
     };
@@ -64,6 +60,14 @@ export default function Consulta() {
         }).start(() => setShowScheduler(false));
     };
 
+    const clearFields = () => {
+        setName('');
+        setReason('');
+        setDate('');
+        setTime('');
+        setSpecialty('');
+    };
+
     const animatedStyle = {
         transform: [
             {
@@ -85,7 +89,7 @@ export default function Consulta() {
                 data={consultations.filter(consultation => consultation.status !== 'Marcada')}
                 keyExtractor={item => item.id}
                 renderItem={({ item }) => (
-                    <View style={styles.item}>
+                    <View style={[styles.item, item.status === 'Concluída' ? styles.completedItem : null]}>
                         <Text>Paciente: {item.name}</Text>
                         <Text>Motivo: {item.reason}</Text>
                         <Text>Data: {item.date}</Text>
@@ -95,8 +99,12 @@ export default function Consulta() {
                         {/* Botões para marcar como concluída e marcada */}
                         {item.status === 'Pendente' && (
                             <View style={styles.buttonContainer}>
-                                <Button title="Concluída" onPress={() => handleMarkCompleted(item.id)} />
-                                <Button title="Marcada" onPress={() => handleMarkScheduled(item.id)} />
+                                <TouchableOpacity style={styles.button} onPress={() => handleMarkCompleted(item.id)}>
+                                    <Text style={styles.buttonText}>Concluída</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity style={styles.button} onPress={() => handleMarkScheduled(item.id)}>
+                                    <Text style={styles.buttonText}>Marcada</Text>
+                                </TouchableOpacity>
                             </View>
                         )}
                     </View>
@@ -107,7 +115,7 @@ export default function Consulta() {
                 data={markedConsultations}
                 keyExtractor={item => item.id}
                 renderItem={({ item }) => (
-                    <View style={styles.item}>
+                    <View style={[styles.item, styles.scheduledItem]}>
                         <Text>Paciente: {item.name}</Text>
                         <Text>Motivo: {item.reason}</Text>
                         <Text>Data: {item.date}</Text>
@@ -145,7 +153,7 @@ export default function Consulta() {
                         placeholder="Data (DD/MM/AAAA)"
                     />
                     <TextInput
-                        style={styles.input}
+                        style={styles.input}                   
                         value={time}
                         onChangeText={setTime}
                         placeholder="Hora (HH:MM)"
@@ -157,57 +165,103 @@ export default function Consulta() {
                         placeholder="Especialidade"
                     />
                     <View style={styles.buttonContainer}>
-                        <Button title="Cancelar" onPress={() => {
-                            slideDownAnimation();
-                        }} />
-                        <Button title="Agendar" onPress={() => {
-                            handleSchedule();
-                            slideDownAnimation();
-                        }} />
+                        <TouchableOpacity
+                            style={[styles.button, styles.cancelButton]}
+                            onPress={() => {
+                                clearFields();
+                                slideDownAnimation();
+                            }}
+                        >
+                            <Text style={styles.buttonText}>Cancelar</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            style={[styles.button, styles.scheduleButton]}
+                            onPress={() => {
+                                handleSchedule();
+                                slideDownAnimation();
+                            }}
+                        >
+                            <Text style={styles.buttonText}>Agendar</Text>
+                        </TouchableOpacity>
                     </View>
                 </Animated.View>
             )}
         </View>
     );
-};
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        padding: 20,
-        backgroundColor: '#fff',
-    },
-    title: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        marginBottom: 10,
-    },
-    input: {
-        height: 40,
-        borderColor: 'gray',
-        borderWidth: 1,
-        marginBottom: 10,
-        paddingHorizontal: 10,
-    },
-    item: {
-        backgroundColor: '#f9f9f9',
-        padding: 10,
-        marginBottom: 10,
-        borderRadius: 5,
-    },
-    formContainer: {
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        backgroundColor: '#fff',
-        padding: 20,
-        borderTopWidth: 1,
-        borderTopColor: '#ccc',
-    },
-    buttonContainer: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginTop: 10,
-    },
-});
+    };
+    
+    const styles = StyleSheet.create({
+        container: {
+            flex: 1,
+            padding: 20,
+            backgroundColor: '#38a69d', // Cor de fundo alterada para #38a69d
+        },
+        title: {
+            fontSize: 20,
+            fontWeight: 'bold',
+            marginBottom: 10,
+            color: '#fff', // Cor do texto alterada para branco
+        },
+        input: {
+            height: 40,
+            borderColor: 'gray',
+            borderWidth: 1,
+            marginBottom: 10,
+            paddingHorizontal: 10,
+            backgroundColor: '#fff', // Cor de fundo do input alterada para branco
+        },
+        item: {
+            backgroundColor: '#f9f9f9',
+            padding: 10,
+            marginBottom: 10,
+            borderRadius: 5,
+        },
+        completedItem: {
+            backgroundColor: '#d6f5d6', // Cor de fundo para consultas concluídas
+        },
+        scheduledItem: {
+            backgroundColor: '#fff7cc', // Cor de fundo para consultas marcadas
+        },
+        formContainer: {
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            backgroundColor: '#fff', // Cor de fundo do formulário alterada para branco
+            padding: 20,
+            borderTopWidth: 1,
+            borderTopColor: '#ccc',
+        },
+        buttonContainer: {
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            marginTop: 10,
+        },
+        button: {
+            alignItems: 'center',
+            justifyContent: 'center',
+            height: 40,
+            width: 100,
+            borderRadius: 5,
+            marginHorizontal: 5,
+        },
+        cancelButton: {
+            backgroundColor: '#ccc', // Cor de fundo para o botão de cancelar
+        },
+        scheduleButton: {
+            backgroundColor: '#007bff', // Cor de fundo para o botão de agendar
+        },
+        cancelButtonText: {
+            color: '#fff', // Cor do texto para o botão de cancelar
+            fontWeight: 'bold',
+        },
+        scheduleButtonText: {
+            color: '#fff', // Cor do texto para o botão de agendar
+            fontWeight: 'bold',
+        },
+        buttonText: {
+            color: '#fff',
+            fontWeight: 'bold',
+        },
+    });
+    
