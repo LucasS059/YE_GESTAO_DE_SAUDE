@@ -29,6 +29,7 @@ export default function Cadastro() {
       if (!fullName) emptyFields.push('Nome Completo');
       if (!birthDate) emptyFields.push('Data de Nascimento');
       Alert.alert('Erro', `Por favor, preencha todos os campos obrigatórios:\n${emptyFields.join(', ')}`);
+
     }
   };
 
@@ -47,6 +48,19 @@ export default function Cadastro() {
       return true; // Considerando um erro como um e-mail já existente para evitar falsos negativos
     }
   }
+
+  const formatBirthDate = (value) => {
+    const cleaned = ('' + value).replace(/\D/g, '');
+  
+    let formatted = cleaned;
+    if (cleaned.length > 2) {
+      formatted = cleaned.slice(0, 2) + '/' + cleaned.slice(2);
+    }
+    if (cleaned.length > 4) {
+      formatted = formatted.slice(0, 5) + '/' + cleaned.slice(4);
+    }
+    return formatted;
+  };
   
   async function createUser() {
     if (!fieldsFilled) {
