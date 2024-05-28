@@ -1,10 +1,9 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, Keyboard, TouchableWithoutFeedback, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Keyboard, TouchableWithoutFeedback, Alert } from 'react-native';
 import * as Animatable from "react-native-animatable";
 import { useNavigation } from '@react-navigation/native';
-import { signInWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
+import { signInWithEmailAndPassword, sendPasswordResetEmail, onAuthStateChanged } from 'firebase/auth';
 import { auth } from "../../services/firebaseConnection";
-// import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -12,25 +11,36 @@ export default function Login() {
   const [errorMessage, setErrorMessage] = useState('');
   const navigation = useNavigation();
 
+  const errorMessages = {
+    'auth/wrong-password': 'Senha incorreta. Tente novamente.',
+    'auth/invalid-email': 'Usuário não encontrado. Verifique o email e tente novamente.',
+    'auth/invalid-credential': 'Usuário não encontrado. Verifique a sua senha e tente novamente.',
+    'auth/too-many-requests': 'Opa! Parece que algo deu errado. O acesso a esta conta foi temporariamente desativado devido a várias tentativas de login inválidas. Você pode restaurá-lo imediatamente redefinindo sua senha ou tentar novamente mais tarde. Agradecemos sua compreensão e paciência enquanto trabalhamos para resolver isso.'
+  };
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        navigation.navigate('TelaPrincipal');
+      }
+    }, (error) => {
+      console.error('Erro durante a verificação do estado de autenticação:', error);
+    });
+
+    return () => unsubscribe(); 
+  }, []);
+
   async function login() {
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      console.log('Fez login com sucesso!');
       navigation.navigate('TelaPrincipal');
     } catch (error) {
-      if (error.code === 'auth/wrong-password') {
-        setErrorMessage('Senha incorreta. Tente novamente.');
-      } else if (error.code === 'auth/user-not-found') {
-        setErrorMessage('Usuário não encontrado. Verifique o email e tente novamente.');
-      } else {
-        setErrorMessage('Ocorreu um erro ao fazer login. Tente novamente.');
-      }
-      console.log(error);
+      setErrorMessage(errorMessages[error.code] || 'Ocorreu um erro ao fazer login. Tente novamente.');
     }
   }
 
   async function resetPassword() {
-    if (email === '') {
+    if (!email.trim()) {
       Alert.alert('Erro', 'Por favor, insira seu email para redefinir a senha.');
       return;
     }
@@ -39,86 +49,48 @@ export default function Login() {
       await sendPasswordResetEmail(auth, email);
       Alert.alert('Sucesso', 'Um email para redefinir sua senha foi enviado.');
     } catch (error) {
-      console.log(error);
       Alert.alert('Erro', 'Ocorreu um erro ao tentar redefinir a senha.');
     }
   }
 
-  // const handleGoogleSignIn = async () => {
-  //   try {
-  //     await GoogleSignin.hasPlayServices();
-  //     const { idToken } = await GoogleSignin.signIn();
-  //     const googleCredential = auth.GoogleAuthProvider.credential(idToken);
-  //     await auth().signInWithCredential(googleCredential);
-  //     navigation.navigate('TelaPrincipal');
-  //   } catch (error) {
-  //     if (error.code === statusCodes.SIGN_IN_CANCELLED) {
-  //       console.log('Sign-in cancelled');
-  //     } else if (error.code === statusCodes.IN_PROGRESS) {
-  //       console.log('Sign-in in progress');
-  //     } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
-  //       console.log('Play services not available');
-  //     } else {
-  //       console.log('Some other error:', error);
-  //     }
-  //   }
-  // };
-
-  const handleFacebookSignIn = () => {
-    // Lógica para autenticação com Facebook
-    console.log("Autenticar com o Facebook");
-  };
-
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <View style={estilos.container}>
-        <Animatable.View animation="fadeInLeft" delay={500} style={estilos.containerHeader}>
-          <Text style={estilos.message}>Bem Vindo(a)</Text>
+      <View style={styles.container}>
+        <Animatable.View animation="fadeInLeft" delay={500} style={styles.containerHeader}>
+          <Text style={styles.message}>Bem Vindo(a)</Text>
         </Animatable.View>
 
-        <Animatable.View animation="fadeInUp" style={estilos.containerForm}>
-          <Text style={estilos.title}>Email</Text>
+        <Animatable.View animation="fadeInUp" style={styles.containerForm}>
+          <Text style={styles.title}>Email</Text>
           <TextInput 
             placeholder='Digite seu email' 
-            style={estilos.input} 
+            style={styles.input} 
             keyboardType="email-address"
             value={email}
-            onChangeText={value => setEmail(value)} 
+            onChangeText={setEmail} 
           />
 
-          <Text style={estilos.title}>Senha</Text>
+          <Text style={styles.title}>Senha</Text>
           <TextInput 
             placeholder='Digite sua senha' 
-            style={estilos.input} 
+            style={styles.input} 
             secureTextEntry 
             value={password}
-            onChangeText={value => setPassword(value)}        
+            onChangeText={setPassword}        
           />
 
-          {errorMessage ? <Text style={estilos.errorText}>{errorMessage}</Text> : null}
+          {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
 
-          <TouchableOpacity style={estilos.button} onPress={() => login()}>
-            <Text style={estilos.buttonText}>Acessar</Text>
+          <TouchableOpacity style={styles.button} onPress={login}>
+            <Text style={styles.buttonText}>Acessar</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={estilos.resetButton} onPress={() => resetPassword()}>
-            <Text style={estilos.resetButtonText}>Esqueceu a senha?</Text>
+          <TouchableOpacity style={styles.resetButton} onPress={resetPassword}>
+          <Text style={styles.resetButtonText}>Esqueceu a senha?</Text>
           </TouchableOpacity>
 
-          {/* <Text style={estilos.orText}>OU</Text>
-
-          <View style={estilos.socialButtonsContainer}>
-            <TouchableOpacity style={estilos.socialButton} onPress={handleFacebookSignIn}>
-              <Image source={require('../../assets/logo_google.png')} style={estilos.socialLogo} />
-            </TouchableOpacity>
-
-            <TouchableOpacity style={estilos.socialButton} onPress={handleFacebookSignIn}>
-              <Image source={require('../../assets/logo_facebook.png')} style={estilos.socialLogo} />
-            </TouchableOpacity>
-          </View> */}
-
-          <TouchableOpacity style={estilos.buttonRegister} onPress={() => navigation.navigate('Cadastro')}>
-            <Text style={estilos.registerText}>Não possui uma conta? Cadastre-se</Text>
+          <TouchableOpacity style={styles.buttonRegister} onPress={() => navigation.navigate('Cadastro')}>
+            <Text style={styles.registerText}>Não possui uma conta? Cadastre-se</Text>
           </TouchableOpacity>
         </Animatable.View>
       </View>
@@ -126,7 +98,7 @@ export default function Login() {
   );
 }
 
-const estilos = StyleSheet.create({
+const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#739489'
@@ -177,23 +149,6 @@ const estilos = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold'
   },
-  orText: {
-    textAlign: 'center',
-    marginVertical: 12,
-    fontSize: 16,
-    color: '#A1A1A1'
-  },
-  socialButtonsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center'
-  },
-  socialButton: {
-    marginHorizontal: 10
-  },
-  socialLogo: {
-    width: 40,
-    height: 40
-  },
   buttonRegister: {
     marginTop: 14,
     alignSelf: 'center'
@@ -216,3 +171,5 @@ const estilos = StyleSheet.create({
     fontSize: 14
   }
 });
+
+           
