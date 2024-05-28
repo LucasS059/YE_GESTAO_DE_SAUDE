@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, Alert } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert } from 'react-native';
 import * as Animatable from "react-native-animatable";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { auth, firestore } from "../../services/firebaseConnection"; // Certifique-se de importar firestore
+import { useNavigation } from '@react-navigation/native';
+import { auth, firestore } from "../../services/firebaseConnection"; 
+import { doc, setDoc } from "firebase/firestore"; 
 
 export default function Cadastro() {
   const [email, setEmail] = useState('');
@@ -11,55 +13,78 @@ export default function Cadastro() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [birthDate, setBirthDate] = useState('');
+  const [fieldsFilled, setFieldsFilled] = useState(false); // Novo estado para controlar se os campos estão preenchidos
+  const navigation = useNavigation();
 
+  // Função para verificar se todos os campos obrigatórios estão preenchidos
+  const checkFields = () => {
+    if (email && password && confirmPassword && fullName && birthDate) {
+      setFieldsFilled(true);
+    } else {
+      setFieldsFilled(false);
+      const emptyFields = [];
+      if (!email) emptyFields.push('Email');
+      if (!password) emptyFields.push('Senha');
+      if (!confirmPassword) emptyFields.push('Confirmação de Senha');
+      if (!fullName) emptyFields.push('Nome Completo');
+      if (!birthDate) emptyFields.push('Data de Nascimento');
+      Alert.alert('Erro', `Por favor, preencha todos os campos obrigatórios:\n${emptyFields.join(', ')}`);
+    }
+  };
+
+  async function checkEmailExists(email) {
+    try {
+      const methods = await fetchSignInMethodsForEmail(auth, email);
+      if (methods && methods.length > 0) {
+        // E-mail já foi usado
+        return true;
+      } else {
+        // E-mail ainda não foi usado
+        return false;
+      }
+    } catch (error) {
+      console.error("Erro ao verificar e-mail: ", error);
+      return true; // Considerando um erro como um e-mail já existente para evitar falsos negativos
+    }
+  }
+  
   async function createUser() {
-    if (!fullName || !email || !password || !confirmPassword || !birthDate) {
-      Alert.alert("Erro", "Todos os campos são obrigatórios");
+    if (!fieldsFilled) {
+      checkFields(); // Verifica se todos os campos estão preenchidos antes de tentar cadastrar
       return;
     }
-
+  
     if (password !== confirmPassword) {
-      Alert.alert("Erro", "As senhas não coincidem");
+      Alert.alert('Erro', 'As senhas não coincidem!');
       return;
     }
-
-    await createUserWithEmailAndPassword(auth, email, password)
-      .then(async value => {
-        console.log('Cadastrado com sucesso! \n ' + value.user.uid);
-        // Armazenar as outras informações no Firestore
-        await firestore.collection('users').doc(value.user.uid).set({
-          fullName,
-          email,
-          birthDate,
-        });
-        Alert.alert("Sucesso", "Usuário cadastrado com sucesso!");
-      })
-      .catch(error => console.log(error));
-  };
-
-  const handleGoogleSignIn = () => {
-    // Lógica para autenticação com Google
-    console.log("Autenticar com o Google");
-  };
-
-  const handleFacebookSignIn = () => {
-    // Lógica para autenticação com Facebook
-    console.log("Autenticar com o Facebook");
-  };
-
-  const formatBirthDate = (value) => {
-    const cleaned = ('' + value).replace(/\D/g, '');
-
-    let formatted = cleaned;
-    if (cleaned.length > 2) {
-      formatted = cleaned.slice(0, 2) + '/' + cleaned.slice(2);
+  
+    const emailExists = await checkEmailExists(email);
+    if (emailExists) {
+      Alert.alert('Erro', 'Este e-mail já está sendo usado por outra conta.');
+      return;
     }
-    if (cleaned.length > 4) {
-      formatted = formatted.slice(0, 5) + '/' + cleaned.slice(4);
+  
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+  
+      await setDoc(doc(firestore, 'users', user.uid), {
+        uid: user.uid,
+        email: email,
+        fullName: fullName,
+        birthDate: birthDate,
+      });
+  
+      console.log('Cadastrado com sucesso! \n ' + user.uid);
+      Alert.alert('Sucesso', 'Usuário cadastrado com sucesso!');
+      navigation.navigate('Login');
+    } catch (error) {
+      console.error("Erro ao cadastrar usuário: ", error);
+      Alert.alert('Erro', error.message);
     }
-    return formatted;
-  };
-
+  }
+  
   return (
     <View style={estilos.container}>
       <KeyboardAwareScrollView contentContainerStyle={estilos.scrollContainer}>
@@ -112,21 +137,9 @@ export default function Cadastro() {
             maxLength={10} 
           />
 
-          <TouchableOpacity style={estilos.button} onPress={() => createUser()}>
+          <TouchableOpacity style={estilos.button} onPress={createUser}>
             <Text style={estilos.buttonText}>Cadastrar</Text>
           </TouchableOpacity>
-
-          {/* <Text style={estilos.orText}>OU</Text>
-
-          <View style={estilos.socialButtonsContainer}>
-            <TouchableOpacity style={estilos.socialButton} onPress={handleGoogleSignIn}>
-              <Image source={require('../../assets/logo_google.png')} style={estilos.socialLogo} />
-            </TouchableOpacity>
-
-            <TouchableOpacity style={estilos.socialButton} onPress={handleFacebookSignIn}>
-              <Image source={require('../../assets/logo_facebook.png')} style={estilos.socialLogo} />
-            </TouchableOpacity>
-          </View> */}
         </Animatable.View>
       </KeyboardAwareScrollView>
     </View>
@@ -187,21 +200,6 @@ const estilos = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
   },
-  orText: {
-    textAlign: 'center',
-    marginVertical: 12,
-    fontSize: 16,
-    color: '#A1A1A1',
-  },
-  socialButtonsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-  },
-  socialButton: {
-    marginHorizontal: 10,
-  },
-  socialLogo: {
-    width: 40,
-    height: 40,
-  },
 });
+
+   

@@ -27,6 +27,7 @@
     "react-dom": "18.2.0",
     "react-native": "0.74.1",
     "react-native-animatable": "^1.4.0",
+    "react-native-fbsdk-next": "^13.0.0",
     "react-native-keyboard-aware-scroll-view": "^0.9.5",
     "react-native-modal-datetime-picker": "^17.1.0",
     "react-native-push-notification": "^8.1.1",

@@ -1,5 +1,7 @@
+// services/firebaseConnection.js
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
 // import { GoogleSignin } from '@react-native-google-signin/google-signin';
 
 // GoogleSignin.configure({
@@ -7,14 +9,17 @@ import { getAuth } from "firebase/auth";
 // });
 
 const firebaseConfig = {
-    apiKey: "AIzaSyAkEqRy21DwOLW7NZZAIWVNVYbwSm8oyOs",
-    authDomain: "ye-gestao-de-saude-79630.firebaseapp.com",
-    projectId: "ye-gestao-de-saude-79630",
-    storageBucket: "ye-gestao-de-saude-79630.appspot.com",
-    messagingSenderId: "732529427575",
-    appId: "1:732529427575:web:d5604168888069cf897272",
-    measurementId: "G-CBSQK5D5MR"
-  };
+  apiKey: "AIzaSyAkEqRy21DwOLW7NZZAIWVNVYbwSm8oyOs",
+  authDomain: "ye-gestao-de-saude-79630.firebaseapp.com",
+  projectId: "ye-gestao-de-saude-79630",
+  storageBucket: "ye-gestao-de-saude-79630.appspot.com",
+  messagingSenderId: "732529427575",
+  appId: "1:732529427575:web:d5604168888069cf897272",
+  measurementId: "G-CBSQK5D5MR"
+};
 
 const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
+const auth = getAuth(app);
+const firestore = getFirestore(app);
+
+export { auth, firestore };
