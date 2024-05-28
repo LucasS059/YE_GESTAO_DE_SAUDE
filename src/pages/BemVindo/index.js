@@ -1,10 +1,23 @@
-import React from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image } from 'react-native';
+import React, { useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native'; 
 import * as Animatable from "react-native-animatable";
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from "../../services/firebaseConnection";
 
 export default function BemVindo() {
   const navigation = useNavigation();
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        navigation.navigate('TelaPrincipal');
+      }
+    });
+
+    return () => unsubscribe(); 
+  }, []);
+
   return (
     <View style={styles.container}>
       <View style={styles.containerLogo}>
