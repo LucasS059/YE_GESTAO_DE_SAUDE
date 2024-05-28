@@ -4,7 +4,7 @@ import * as Animatable from "react-native-animatable";
 import { useNavigation } from '@react-navigation/native';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from "../../services/firebaseConnection";
-import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
+// import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -20,25 +20,25 @@ export default function Login() {
       .catch(error => console.log(error));
   };
 
-  const handleGoogleSignIn = async () => {
-    try {
-      await GoogleSignin.hasPlayServices();
-      const { idToken } = await GoogleSignin.signIn();
-      const googleCredential = auth.GoogleAuthProvider.credential(idToken);
-      await auth().signInWithCredential(googleCredential);
-      navigation.navigate('TelaPrincipal');
-    } catch (error) {
-      if (error.code === statusCodes.SIGN_IN_CANCELLED) {
-        console.log('Sign-in cancelled');
-      } else if (error.code === statusCodes.IN_PROGRESS) {
-        console.log('Sign-in in progress');
-      } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
-        console.log('Play services not available');
-      } else {
-        console.log('Some other error:', error);
-      }
-    }
-  };
+  // const handleGoogleSignIn = async () => {
+  //   try {
+  //     await GoogleSignin.hasPlayServices();
+  //     const { idToken } = await GoogleSignin.signIn();
+  //     const googleCredential = auth.GoogleAuthProvider.credential(idToken);
+  //     await auth().signInWithCredential(googleCredential);
+  //     navigation.navigate('TelaPrincipal');
+  //   } catch (error) {
+  //     if (error.code === statusCodes.SIGN_IN_CANCELLED) {
+  //       console.log('Sign-in cancelled');
+  //     } else if (error.code === statusCodes.IN_PROGRESS) {
+  //       console.log('Sign-in in progress');
+  //     } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+  //       console.log('Play services not available');
+  //     } else {
+  //       console.log('Some other error:', error);
+  //     }
+  //   }
+  // };
 
   const handleFacebookSignIn = () => {
     // Lógica para autenticação com Facebook
@@ -77,7 +77,7 @@ export default function Login() {
         <Text style={estilos.orText}>OU</Text>
 
         <View style={estilos.socialButtonsContainer}>
-          <TouchableOpacity style={estilos.socialButton} onPress={handleGoogleSignIn}>
+          <TouchableOpacity style={estilos.socialButton} onPress={handleFacebookSignIn}>
             <Image source={require('../../assets/logo_google.png')} style={estilos.socialLogo} />
           </TouchableOpacity>
 

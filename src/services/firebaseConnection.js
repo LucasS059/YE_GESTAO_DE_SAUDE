@@ -1,10 +1,10 @@
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import { GoogleSignin } from '@react-native-google-signin/google-signin';
+// import { GoogleSignin } from '@react-native-google-signin/google-signin';
 
-GoogleSignin.configure({
-  webClientId: '732529427575-blkk4fjl5m7gmaeouhk47j4sb43t28b6.apps.googleusercontent.com',
-});
+// GoogleSignin.configure({
+//   webClientId: '732529427575-blkk4fjl5m7gmaeouhk47j4sb43t28b6.apps.googleusercontent.com',
+// });
 
 const firebaseConfig = {
     apiKey: "AIzaSyAkEqRy21DwOLW7NZZAIWVNVYbwSm8oyOs",

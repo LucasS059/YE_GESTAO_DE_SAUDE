@@ -1,0 +1,111 @@
+não mexer, isso é o codigo que eu fiz que deu certo 
+
+import React, { useState } from "react";
+import {
+    View,
+    Text,
+    StyleSheet,
+    TextInput,
+    Button,
+  } from "react-native";
+
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "firebase/auth";
+import { auth } from "../../services/firebaseConnection";
+
+export function Home() {
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+
+    async function createUser() {
+        await createUserWithEmailAndPassword(auth, email, password)
+        .then(value => {
+            console.log('Cadastrado com sucesso! \n ' + value.user.uid);
+        })
+        .catch(error => console.log(error));
+    };
+
+    async function login() {
+        await signInWithEmailAndPassword(auth, email, password)
+        .then(value => {
+            console.log('Fez login com sucesso! \n ' + value.user.uid);
+        })
+        .catch(error => console.log(error));
+    };
+
+    async function logout() {
+        await signOut(auth)
+        .then(() => {
+            console.log('Saiu com sucesso!');
+        })
+        .catch(error => console.log(error));
+    };
+
+    return(
+    <View style={styles.container}>
+        <Text>Firebase App</Text>
+        <TextInput
+            placeholder="email"
+            placeholderTextColor= "#313131"
+            value={email}
+            onChangeText={value => setEmail(value)}
+            style={styles.input}
+        />
+
+        <TextInput
+            placeholder="senha"
+            placeholderTextColor= "#313131"
+            value={password}
+            onChangeText={value => setPassword(value)}
+            style={[styles.input, {marginBottom: 10}]}
+        />
+        <Button
+            title="CADASTRAR"
+            onPress={() => createUser()}
+        />
+
+        <Button
+            title="Entrar"
+            onPress={() => login()}
+        />
+
+        <Button
+            title="Sair"
+            onPress={() => logout()}
+        />
+        </View>
+    )
+}
+
+const styles = StyleSheet.create({
+    container:{
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center"
+    },
+    input:{
+        borderBottomWidth: 1,
+        borderBottomColor: '#313131',
+        marginTop: 5,
+        width: '80%',
+        height: 50,
+    }
+})
+
+
+==================
+
+import { initializeApp } from "firebase/app";
+import { getAuth } from "firebase/auth";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyAkEqRy21DwOLW7NZZAIWVNVYbwSm8oyOs",
+    authDomain: "ye-gestao-de-saude-79630.firebaseapp.com",
+    projectId: "ye-gestao-de-saude-79630",
+    storageBucket: "ye-gestao-de-saude-79630.appspot.com",
+    messagingSenderId: "732529427575",
+    appId: "1:732529427575:web:d5604168888069cf897272",
+    measurementId: "G-CBSQK5D5MR"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  export const auth = getAuth(app);
