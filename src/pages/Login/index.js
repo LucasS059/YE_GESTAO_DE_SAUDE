@@ -1,48 +1,24 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image } from 'react-native';
 import * as Animatable from "react-native-animatable";
 import { useNavigation } from '@react-navigation/native';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from "../../services/firebaseConnection";
-import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 
 export default function Login() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const navigation = useNavigation();
 
-  async function login() {
-    await signInWithEmailAndPassword(auth, email, password)
-      .then(value => {
-        console.log('Fez login com sucesso! \n ' + value.user.uid);
-        navigation.navigate('Principal'); // Redireciona para a tela principal após login
-      })
-      .catch(error => console.log(error));
-  };
-
-  const handleGoogleSignIn = async () => {
-    try {
-      await GoogleSignin.hasPlayServices();
-      const { idToken } = await GoogleSignin.signIn();
-      const googleCredential = auth.GoogleAuthProvider.credential(idToken);
-      await auth().signInWithCredential(googleCredential);
-      navigation.navigate('Principal'); // Redireciona para a tela principal após login
-    } catch (error) {
-      if (error.code === statusCodes.SIGN_IN_CANCELLED) {
-        console.log('Sign-in cancelled');
-      } else if (error.code === statusCodes.IN_PROGRESS) {
-        console.log('Sign-in in progress');
-      } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
-        console.log('Play services not available');
-      } else {
-        console.log('Some other error:', error);
-      }
-    }
+  const handleGoogleSignIn = () => {
+    // Lógica para autenticação com Google
+    console.log("Autenticar com o Google");
   };
 
   const handleFacebookSignIn = () => {
     // Lógica para autenticação com Facebook
     console.log("Autenticar com o Facebook");
+  };
+
+  const handleAcesso = () => {
+    // Lógica para acesso
+    console.log("Acessado");
   };
 
   return (
@@ -53,24 +29,12 @@ export default function Login() {
 
       <Animatable.View animation="fadeInUp" style={estilos.containerForm}>
         <Text style={estilos.title}>Email</Text>
-        <TextInput 
-          placeholder='Digite seu email' 
-          style={estilos.input} 
-          keyboardType="email-address"
-          value={email}
-          onChangeText={value => setEmail(value)} 
-        />
+        <TextInput placeholder='Digite seu email' style={estilos.input} keyboardType="email-address" />
 
         <Text style={estilos.title}>Senha</Text>
-        <TextInput 
-          placeholder='Digite sua senha' 
-          style={estilos.input} 
-          secureTextEntry 
-          value={password}
-          onChangeText={value => setPassword(value)}        
-        />
+        <TextInput placeholder='Digite sua senha' style={estilos.input} secureTextEntry />
 
-        <TouchableOpacity style={estilos.button} onPress={() => login()}>
+        <TouchableOpacity style={estilos.button} onPress={() => navigation.navigate('TelaPrincipal')}>
           <Text style={estilos.buttonText}>Acessar</Text>
         </TouchableOpacity>
 
