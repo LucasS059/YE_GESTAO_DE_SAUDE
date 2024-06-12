@@ -1,200 +1,237 @@
-import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList, Alert, Image } from 'react-native';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import { auth, firestore, storage } from "../../services/firebaseConnection";
-import { addDoc, collection, serverTimestamp, query, getDocs, doc } from "firebase/firestore";
-import * as ImagePicker from 'expo-image-picker';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TextInput, Alert, KeyboardAvoidingView, TouchableOpacity, Platform, ScrollView, FlatList } from 'react-native';
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import { firestore } from "../../services/firebaseConnection";
+import { auth } from "../../services/firebaseConnection";
 
-const TelaExames = () => {
-    const navigation = useNavigation();
-    const [nomeExame, setNomeExame] = useState('');
-    const [imagemExame, setImagemExame] = useState(null);
-    const [exames, setExames] = useState([]);
+export default function Agenda() {
+  const [medicationName, setMedicationName] = useState('');
+  const [dosage, setDosage] = useState('');
+  const [frequency, setFrequency] = useState('');
+  const [time, setTime] = useState('');
+  const [medicationsList, setMedicationsList] = useState([]);
 
-    const buscarExames = useCallback(async () => {
-        try {
-            const userId = auth.currentUser.uid;
-            const userDocRef = doc(firestore, 'users', userId);
-            const examesCollectionRef = collection(userDocRef, 'exames');
-            const q = query(examesCollectionRef);
-            const querySnapshot = await getDocs(q);
-            const examesData = [];
-            querySnapshot.forEach((doc) => {
-                examesData.push({ id: doc.id, ...doc.data() });
-            });
-            setExames(examesData);
-        } catch (error) {
-            console.error('Erro ao buscar exames: ', error);
+  useEffect(() => {
+    const fetchMedications = async () => {
+      try {
+        const currentUser = auth.currentUser;
+        if (currentUser) {
+          const userDocRef = doc(firestore, "users", currentUser.uid);
+          const userDocSnap = await getDoc(userDocRef);
+          if (userDocSnap.exists()) {
+            const userDocData = userDocSnap.data();
+            const agendaMedicacao = userDocData.agendaMedicacao || [];
+            setMedicationsList(agendaMedicacao);
+          } else {
+            console.log("Documento do usuário não encontrado.");
+          }
+        } else {
+          console.log("Usuário não está logado.");
         }
-    }, []);
-
-    useFocusEffect(
-        useCallback(() => {
-            buscarExames();
-        }, [buscarExames])
-    );
-
-    const adicionarExame = async () => {
-        if (!nomeExame || !imagemExame) {
-            alert('Por favor, preencha todos os campos antes de adicionar o exame.');
-            return;
-        }
-
-        const userId = auth.currentUser.uid;
-        const imageUri = imagemExame;
-        const response = await fetch(imageUri);
-        const blob = await response.blob();
-
-        const storageRef = storage.ref().child(`exames/${userId}/${Date.now()}`);
-        const snapshot = await storageRef.put(blob);
-        const downloadURL = await snapshot.ref.getDownloadURL();
-
-        const exame = {
-            nomeExame,
-            imagemURL: downloadURL,
-            data: serverTimestamp(),
-        };
-
-        try {
-            const userDocRef = doc(firestore, 'users', userId);
-            const examesCollectionRef = collection(userDocRef, 'exames');
-            await addDoc(examesCollectionRef, exame);
-            setExames([...exames, exame]);
-            setNomeExame('');
-            setImagemExame(null);
-            buscarExames();
-        } catch (error) {
-            console.error('Erro ao adicionar exame: ', error);
-        }
+      } catch (error) {
+        console.error("Erro ao buscar medicações do usuário:", error);
+        Alert.alert('Erro', 'Ocorreu um erro ao buscar as medicações.');
+      }
     };
 
-    const selecionarImagem = async () => {
-        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-        if (status !== 'granted') {
-            alert('Desculpe, precisamos da permissão para acessar a biblioteca de mídia para isso funcionar!');
-            return;
-        }
+    fetchMedications();
+  }, []);
 
-        let result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.Images,
-            allowsEditing: true,
-            aspect: [4, 3],
-            quality: 1,
-        });
+  const handleMedication = async () => {
+    if (!medicationName || !dosage || !frequency || !time) {
+      Alert.alert('Campos obrigatórios', 'Por favor, preencha todos os campos.');
+      return;
+    }
 
-        if (!result.cancelled) {
-            setImagemExame(result.uri);
-        }
-    };
+    const existingMedicationIndex = medicationsList.findIndex(item => item.name === medicationName);
+    if (existingMedicationIndex > -1) {
+      // Atualiza a medicação existente
+      medicationsList[existingMedicationIndex] = { name: medicationName, dosage, frequency, time };
+    } else {
+      // Adiciona uma nova medicação
+      medicationsList.push({ name: medicationName, dosage, frequency, time });
+    }
 
-    return (
-        <View style={styles.container}>
-            <View style={styles.topBar}>
-                <Text style={styles.titulo}>Exames</Text>
-            </View>
-            <View style={styles.form}>
-                <Text style={styles.formTitle}>Adicionar Exame</Text>
-                <TextInput
-                    style={styles.input}
-                    placeholder="Nome do Exame"
-                    value={nomeExame}
-                    onChangeText={setNomeExame}
-                />
-                <TouchableOpacity style={styles.button} onPress={selecionarImagem}>
-                    <Text style={styles.buttonText}>Selecionar Imagem</Text>
-                </TouchableOpacity>
-                {imagemExame && (
-                    <Image source={{ uri: imagemExame }} style={styles.image} />
-                )}
-                <TouchableOpacity style={styles.button} onPress={adicionarExame}>
-                    <Text style={styles.buttonText}>Adicionar Exame</Text>
-                </TouchableOpacity>
-            </View>
-            <FlatList
-                data={exames}
-                keyExtractor={(item) => item.id}
-                renderItem={({ item }) => (
-                    <View style={styles.exameItem}>
-                        <Text>Nome: {item.nomeExame}</Text>
-                        {item.imagemURL && (
-                            <Image source={{ uri: item.imagemURL }} style={styles.image} />
-                        )}
-                    </View>
-                )}
-            />
-        </View>
-    );
-};
+    try {
+      const currentUser = auth.currentUser;
+      if (currentUser) {
+        const userDocRef = doc(firestore, "users", currentUser.uid);
+        await setDoc(userDocRef, { agendaMedicacao: medicationsList }, { merge: true });
+
+        Alert.alert('Medicação agendada', 'A medicação foi agendada com sucesso.');
+
+        setMedicationName('');
+        setDosage('');
+        setFrequency('');
+        setTime('');
+      } else {
+        console.log("Usuário não está logado.");
+      }
+    } catch (error) {
+      console.error("Erro ao salvar medicação:", error);
+      Alert.alert('Erro', 'Ocorreu um erro ao salvar a medicação.');
+    }
+  };
+
+  const handleDeleteMedication = async (index) => {
+    const updatedMedicationsList = [...medicationsList];
+    updatedMedicationsList.splice(index, 1);
+
+    try {
+      const currentUser = auth.currentUser;
+      if (currentUser) {
+        const userDocRef = doc(firestore, "users", currentUser.uid);
+        await setDoc(userDocRef, { agendaMedicacao: updatedMedicationsList }, { merge: true });
+
+        setMedicationsList(updatedMedicationsList);
+      } else {
+        console.log("Usuário não está logado.");
+      }
+    } catch (error) {
+      console.error("Erro ao excluir medicação:", error);
+      Alert.alert('Erro', 'Ocorreu um erro ao excluir a medicação.');
+    }
+  };
+
+  const renderItem = ({ item, index }) => (
+    <View style={styles.medicationItem}>
+      <Text>Medicamento: {item.name}</Text>
+      <Text>Dosagem: {item.dosage}</Text>
+      <Text>Frequência: {item.frequency}</Text>
+      <Text>Horário: {item.time}</Text>
+      <TouchableOpacity onPress={() => handleDeleteMedication(index)} style={styles.deleteButton}>
+        <Text style={styles.deleteButtonText}>Excluir</Text>
+      </TouchableOpacity>
+    </View>
+  );
+
+  return (
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={styles.container}
+    >
+      <Text style={[styles.title, Platform.OS === 'ios' ? styles.titleIOS : styles.titleAndroid]}>Agendar Medicação</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Nome do Medicamento"
+        value={medicationName}
+        onChangeText={setMedicationName}
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Dosagem"
+        value={dosage}
+        onChangeText={setDosage}
+        keyboardType="numeric"
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Frequência (ex: 1 vez ao dia)"
+        value={frequency}
+        onChangeText={setFrequency}
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Horário (HH:MM)"
+        value={time}
+        onChangeText={setTime}
+      />
+      <TouchableOpacity
+        style={styles.button}
+        onPress={handleMedication}
+      >
+        <Text style={styles.buttonText}>Agendar</Text>
+      </TouchableOpacity>
+      <FlatList
+        data={medicationsList}
+        renderItem={renderItem}
+        keyExtractor={item => item.name}
+        style={styles.list}
+      />
+    </KeyboardAvoidingView>
+  );  
+}
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#739489',
-        paddingHorizontal: 20,
-        paddingTop: 20,
-    },
-    topBar: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginTop: 20,
-        marginBottom: 20,
-    },
-    titulo: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        color: 'white',
-    },
-    form: {
-        backgroundColor: '#fff',
-        padding: 20,
-        borderRadius: 10,
-        marginBottom: 20,
-    },
-    formTitle: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        marginBottom: 10,
-    },
-    input: {
-        backgroundColor: '#f9f9f9',
-        borderRadius: 5,
-        paddingHorizontal: 10,
-        paddingVertical: 5,
-        marginBottom: 10,
-    },
-    button: {
-        backgroundColor: '#38a69d',
-        borderRadius: 5,
-        paddingVertical: 10,
-        paddingHorizontal: 20,
-        alignItems: 'center',
-        marginTop: 10,
-    },
-    buttonText: {
-        color: '#fff',
-        fontSize: 16,
-        fontWeight: 'bold',
-    },
-    exameItem: {
-        backgroundColor: '#FFFFFF',
-        borderRadius: 10,
-        paddingHorizontal: 15,
-        paddingVertical: 10,
-        marginBottom: 10,
-        elevation: 2,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.2,
-        shadowRadius: 1.41,
-    },
-    image: {
-        width: 100,
-        height: 100,
-        marginTop: 10,
-        marginBottom: 10,
-        borderRadius: 5,
-    },
+  container: {
+    flex: 1,
+    backgroundColor: '#739489',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+  },
+  scrollViewContent: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  title: {
+    fontSize: 28,
+    marginBottom: 20,
+    fontWeight: 'bold',
+    color: 'white',
+  },
+  titleIOS: {
+    marginTop: 40,
+  },
+  titleAndroid: {
+    marginTop: 20,
+  },
+  input: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 10,
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    marginBottom: 15,
+    width: '100%',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 1.41,
+  },
+  button: {
+    backgroundColor: '#38a69d',
+    borderRadius: 20,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    marginTop: 10,
+    elevation    : 3,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity:    0.25,
+    shadowRadius: 3.84,
+  },
+  buttonText:{
+    fontSize: 18,
+    color: 'white',
+    textAlign: 'center',
+  },
+  list: {
+    marginTop: 20,
+    width: '100%',
+  },
+  medicationItem: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 10,
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    marginBottom: 10,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 1.41,
+  },
+  deleteButton: {
+    backgroundColor: '#ff6347',
+    borderRadius: 5,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    alignSelf: 'flex-end',
+    marginTop: 10,
+  },
+  deleteButtonText: {
+    color: 'white',
+  },
 });
 
-export default TelaExames;
+
