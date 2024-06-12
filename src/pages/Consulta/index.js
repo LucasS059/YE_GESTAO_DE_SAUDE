@@ -1,267 +1,324 @@
-import React, { useState } from 'react';
-import { View, Text, Button, TextInput, StyleSheet, FlatList, Animated, TouchableOpacity } from 'react-native';
+import React, { useState, useCallback } from 'react';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList, Alert } from 'react-native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { auth, firestore } from "../../services/firebaseConnection";
+import { addDoc, collection, serverTimestamp, query, where, getDocs, doc, deleteDoc, updateDoc } from "firebase/firestore";
+import { FontAwesome } from '@expo/vector-icons';
 
-export default function Consulta() {
-    const [consultations, setConsultations] = useState([]);
-    const [name, setName] = useState('');
-    const [reason, setReason] = useState('');
-    const [date, setDate] = useState('');
-    const [time, setTime] = useState('');
-    const [specialty, setSpecialty] = useState('');
-    const [showScheduler, setShowScheduler] = useState(false);
-    const [animation] = useState(new Animated.Value(0));
+const TelaHistoricoConsultas = () => {
+    const navigation = useNavigation();
+    const [nomePaciente, setNomePaciente] = useState('');
+    const [dataConsulta, setDataConsulta] = useState('');
+    const [horaConsulta, setHoraConsulta] = useState('');
+    const [motivoConsulta, setMotivoConsulta] = useState('');
+    const [consultas, setConsultas] = useState([]);
 
-    const handleSchedule = () => {
-        const newConsultation = {
-            id: Math.random().toString(),
-            name: name,
-            reason: reason,
-            date: date,
-            time: time,
-            specialty: specialty,
-            status: 'Pendente' // Inicializa como pendente
+    const buscarConsultas = useCallback(async () => {
+        try {
+            const userId = auth.currentUser.uid;
+            const userDocRef = doc(firestore, 'users', userId);
+            const consultasCollectionRef = collection(userDocRef, 'consultas');
+            const q = query(consultasCollectionRef);
+            const querySnapshot = await getDocs(q);
+            const consultasData = [];
+            querySnapshot.forEach((doc) => {
+                consultasData.push({ id: doc.id, ...doc.data() });
+            });
+            setConsultas(consultasData.filter(consulta => !consulta.concluida));
+        } catch (error) {
+            console.error('Erro ao buscar consultas: ', error);
+        }
+    }, []);
+
+    useFocusEffect(
+        React.useCallback(() => {
+            buscarConsultas();
+        }, [buscarConsultas])
+    );
+
+    const adicionarConsulta = async () => {
+        if (!nomePaciente || !dataConsulta || !horaConsulta || !motivoConsulta) {
+            alert('Por favor, preencha todos os campos antes de adicionar a consulta.');
+            return;
+        }
+    
+        const consulta = {
+            nomePaciente,
+            dataConsulta,
+            horaConsulta,
+            motivoConsulta,
+            data: serverTimestamp(),
+            concluida: false
         };
-        setConsultations(prevConsultations => [...prevConsultations, newConsultation]);
-        // Limpa os campos após agendar a consulta
-        clearFields();
-        // Esconde a seção de agendamento após agendar a consulta
-        setShowScheduler(false);
+    
+        try {
+            const userId = auth.currentUser.uid;
+            const userDocRef = doc(firestore, 'users', userId);
+            const consultasCollectionRef = collection(userDocRef, 'consultas');
+            await addDoc(consultasCollectionRef, consulta);
+            setConsultas([...consultas, consulta]);
+            setNomePaciente('');
+            setDataConsulta('');
+            setHoraConsulta('');
+            setMotivoConsulta('');
+            buscarConsultas();
+        } catch (error) {
+            console.error('Erro ao adicionar consulta: ', error);
+        }
     };
+    
 
-    const handleMarkCompleted = (id) => {
-        setConsultations(prevConsultations =>
-            prevConsultations.map(consultation =>
-                consultation.id === id ? { ...consultation, status: 'Concluída' } : consultation
-            )
-        );
+    const excluirConsulta = async (consultaId) => {
+        try {
+            if (!consultaId) {
+                console.error('ID da consulta inválido');
+                return;
+            }
+    
+            const userId = auth.currentUser.uid;
+            const userDocRef = doc(firestore, 'users', userId);
+            const consultaDocRef = doc(userDocRef, 'consultas', consultaId);
+            await deleteDoc(consultaDocRef);
+            const novasConsultas = consultas.filter((consulta) => consulta.id !== consultaId);
+            setConsultas(novasConsultas);
+        } catch (error) {
+            console.error('Erro ao excluir consulta: ', error);
+        }
     };
-
-    const handleMarkScheduled = (id) => {
-        setConsultations(prevConsultations =>
-            prevConsultations.map(consultation =>
-                consultation.id === id ? { ...consultation, status: 'Marcada' } : consultation
-            )
-        );
+    
+    const marcarConcluida = async (consultaId) => {
+        try {
+            if (!consultaId) {
+                console.error('ID da consulta inválido');
+                return;
+            }
+    
+            const userId = auth.currentUser.uid;
+            const userDocRef = doc(firestore, 'users', userId);
+            const consultaDocRef = doc(userDocRef, 'consultas', consultaId);
+            await updateDoc(consultaDocRef, { concluida: true });
+            const consultasAtualizadas = consultas.map((consulta) =>
+                consulta.id === consultaId ? { ...consulta, concluida: true } : consulta
+            );
+            setConsultas(consultasAtualizadas.filter(consulta => !consulta.concluida));
+        } catch (error) {
+            console.error('Erro ao marcar consulta como concluída: ', error);
+        }
     };
-
-    const slideUpAnimation = () => {
-        Animated.timing(animation, {
-            toValue: 1,
-            duration: 500,
-            useNativeDriver: true,
-        }).start();
-    };
-
-    const slideDownAnimation = () => {
-        Animated.timing(animation, {
-            toValue: 0,
-            duration: 500,
-            useNativeDriver: true,
-        }).start(() => setShowScheduler(false));
-    };
-
-    const clearFields = () => {
-        setName('');
-        setReason('');
-        setDate('');
-        setTime('');
-        setSpecialty('');
-    };
-
-    const animatedStyle = {
-        transform: [
-            {
-                translateY: animation.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [400, 0],
-                }),
-            },
-        ],
-    };
-
-    // Ordenar as consultas marcadas da mais recente para a última
-    const markedConsultations = consultations.filter(consultation => consultation.status === 'Marcada').reverse();
 
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>Suas Consultas</Text>
+            <View style={styles.topBar}>
+                <FontAwesome name="home" size={24} color="black" onPress={() => navigation.goBack()} />
+            </View>
+            <Text style={styles.instrucoes}>Marque sua consulta:</Text>
+            <View style={styles.form}>
+                <Text style={styles.formTitle}>Histórico de Consultas</Text>
+                <TextInput
+                    style={styles.input}
+                    placeholder="Nome do Paciente"
+                    value={nomePaciente}
+                    onChangeText={setNomePaciente}
+                />
+                <View style={styles.dataHoraContainer}>
+                    <TextInput
+                        style={[styles.input, styles.inputData]}
+                        placeholder="DD/MM/AAAA"
+                        keyboardType="numeric"
+                        value={dataConsulta}
+                        onChangeText={(text) => {
+                            // Remover somente o último caractere se for um não-numérico
+                            if (text.length < dataConsulta.length && !/\d$/.test(text)) {
+                                setDataConsulta(text.slice(0, -1));
+                            } else {
+                                const formattedText = text
+                                    .replace(/\D/g, '')
+                                    .replace(/(\d{2})(\d)/, '$1/$2')
+                                    .replace(/(\d{2})(\d)/, '$1/$2')
+                                    .replace(/(\d{4})(\d+)$/, '$1');
+                                setDataConsulta(formattedText);
+                            }
+                        }}
+                    />
+                    <TextInput
+                        style={[styles.input, styles.inputHora]}
+                        placeholder="HH:MM"
+                        keyboardType="numeric"
+                        value={horaConsulta}
+                        onChangeText={(text) => {
+                            // Remover somente o último caractere se for um não-numérico
+                            if (text.length < horaConsulta.length && !/\d$/.test(text)) {
+                                setHoraConsulta(text.slice(0, -1));
+                            } else {
+                                const formattedText = text
+                                    .replace(/\D/g, '') // Remove caracteres não numéricos
+                                    .replace(/(\d{2})(\d+)/, '$1:$2') // Adiciona ":" após os dois primeiros dígitos
+                                    .replace(/^(.*):(.*)$/, (match, p1, p2) => {
+                                        // Limita o segundo grupo de dígitos a dois caracteres
+                                        return `${p1}:${p2.slice(0, 2)}`;
+                                    });
+                                setHoraConsulta(formattedText);
+                            }
+                        }}
+                    />
+                </View>
+                <TextInput
+                    style={styles.input}
+                    placeholder="Motivo da Consulta"
+                    value={motivoConsulta}
+                    onChangeText={setMotivoConsulta}
+                />
+                <TouchableOpacity style={styles.button} onPress={adicionarConsulta}>
+                    <Text style={styles.buttonText}>Adicionar Consulta</Text>
+                </TouchableOpacity>
+            </View>
             <FlatList
-                data={consultations.filter(consultation => consultation.status !== 'Marcada')}
-                keyExtractor={item => item.id}
+                data={consultas}
+                keyExtractor={(item) => item.id}
                 renderItem={({ item }) => (
-                    <View style={[styles.item, item.status === 'Concluída' ? styles.completedItem : null]}>
-                        <Text>Paciente: {item.name}</Text>
-                        <Text>Motivo: {item.reason}</Text>
-                        <Text>Data: {item.date}</Text>
-                        <Text>Hora: {item.time}</Text>
-                        <Text>Especialidade: {item.specialty}</Text>
-                        <Text>Status: {item.status}</Text>
-                        {/* Botões para marcar como concluída e marcada */}
-                        {item.status === 'Pendente' && (
-                            <View style={styles.buttonContainer}>
-                                <TouchableOpacity style={styles.button} onPress={() => handleMarkCompleted(item.id)}>
-                                    <Text style={styles.buttonText}>Concluída</Text>
+                    <View style={styles.consultaItem}>
+                        <Text>Paciente: {item.nomePaciente}</Text>
+                        <Text>Data: {item.dataConsulta}</Text>
+                        <Text>Hora: {item.horaConsulta}</Text>
+                        <Text>Motivo: {item.motivoConsulta}</Text>
+                        <View style={styles.buttonsContainer}>
+                            {!item.concluida && (
+                                <TouchableOpacity
+                                    style={styles.button}
+                                    onPress={() =>
+                                        Alert.alert(
+                                            'Marcar como Concluída',
+                                            'Deseja marcar esta consulta como concluída?',
+                                            [
+                                                { text: 'Cancelar', style: 'cancel' },
+                                                {
+                                                    text: 'Confirmar',
+                                                    onPress: () => marcarConcluida(item.id),
+                                                },
+                                            ],
+                                            { cancelable: true }
+                                        )
+                                    }
+                                >
+                                    <Text>Concluir</Text>
                                 </TouchableOpacity>
-                                <TouchableOpacity style={styles.button} onPress={() => handleMarkScheduled(item.id)}>
-                                    <Text style={styles.buttonText}>Marcada</Text>
-                                </TouchableOpacity>
-                            </View>
-                        )}
+                            )}
+                            <TouchableOpacity
+                                style={[styles.button, styles.buttonDelete]}
+                                onPress={() =>
+                                    Alert.alert(
+                                        'Excluir Consulta',
+                                        'Deseja realmente excluir esta consulta?',
+                                        [
+                                            { text: 'Cancelar', style: 'cancel' },
+                                            {
+                                                text: 'Confirmar',
+                                                onPress: () => excluirConsulta(item.id),
+                                            },
+                                        ],
+                                        { cancelable: true }
+                                    )
+                                }
+                            >
+                                <Text>Excluir</Text>
+                            </TouchableOpacity>
+                        </View>
                     </View>
                 )}
             />
-            {/* Lista das consultas marcadas */}
-            <FlatList
-                data={markedConsultations}
-                keyExtractor={item => item.id}
-                renderItem={({ item }) => (
-                    <View style={[styles.item, styles.scheduledItem]}>
-                        <Text>Paciente: {item.name}</Text>
-                        <Text>Motivo: {item.reason}</Text>
-                        <Text>Data: {item.date}</Text>
-                        <Text>Hora: {item.time}</Text>
-                        <Text>Especialidade: {item.specialty}</Text>
-                        <Text>Status: {item.status}</Text>
-                    </View>
-                )}
-            />
-            {/* Botão para exibir a seção de agendamento */}
-            <Button title="Agendar Consulta" onPress={() => {
-                setShowScheduler(true);
-                slideUpAnimation();
-            }} />
-            {/* Seção de agendamento (inicialmente invisível) */}
-            {showScheduler && (
-                <Animated.View style={[styles.formContainer, animatedStyle]}>
-                    <Text style={styles.title}>Agendar Consulta</Text>
-                    <TextInput
-                        style={styles.input}
-                        value={name}
-                        onChangeText={setName}
-                        placeholder="Nome do Paciente"
-                    />
-                    <TextInput
-                        style={styles.input}
-                        value={reason}
-                        onChangeText={setReason}
-                        placeholder="Motivo da Consulta"
-                    />
-                    <TextInput
-                        style={styles.input}
-                        value={date}
-                        onChangeText={setDate}
-                        placeholder="Data (DD/MM/AAAA)"
-                    />
-                    <TextInput
-                        style={styles.input}                   
-                        value={time}
-                        onChangeText={setTime}
-                        placeholder="Hora (HH:MM)"
-                    />
-                    <TextInput
-                        style={styles.input}
-                        value={specialty}
-                        onChangeText={setSpecialty}
-                        placeholder="Especialidade"
-                    />
-                    <View style={styles.buttonContainer}>
-                        <TouchableOpacity
-                            style={[styles.button, styles.cancelButton]}
-                            onPress={() => {
-                                clearFields();
-                                slideDownAnimation();
-                            }}
-                        >
-                            <Text style={styles.buttonText}>Cancelar</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                            style={[styles.button, styles.scheduleButton]}
-                            onPress={() => {
-                                handleSchedule();
-                                slideDownAnimation();
-                            }}
-                        >
-                            <Text style={styles.buttonText}>Agendar</Text>
-                        </TouchableOpacity>
-                    </View>
-                </Animated.View>
-            )}
+
         </View>
     );
-    };
-    
-    const styles = StyleSheet.create({
-        container: {
-            flex: 1,
-            padding: 20,
-            backgroundColor: '#38a69d', // Cor de fundo alterada para #38a69d
-        },
-        title: {
-            fontSize: 20,
-            fontWeight: 'bold',
-            marginBottom: 10,
-            color: '#fff', // Cor do texto alterada para branco
-        },
-        input: {
-            height: 40,
-            borderColor: 'gray',
-            borderWidth: 1,
-            marginBottom: 10,
-            paddingHorizontal: 10,
-            backgroundColor: '#fff', // Cor de fundo do input alterada para branco
-        },
-        item: {
-            backgroundColor: '#f9f9f9',
-            padding: 10,
-            marginBottom: 10,
-            borderRadius: 5,
-        },
-        completedItem: {
-            backgroundColor: '#d6f5d6', // Cor de fundo para consultas concluídas
-        },
-        scheduledItem: {
-            backgroundColor: '#fff7cc', // Cor de fundo para consultas marcadas
-        },
-        formContainer: {
-            position: 'absolute',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            backgroundColor: '#fff', // Cor de fundo do formulário alterada para branco
-            padding: 20,
-            borderTopWidth: 1,
-            borderTopColor: '#ccc',
-        },
-        buttonContainer: {
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            marginTop: 10,
-        },
-        button: {
-            alignItems: 'center',
-            justifyContent: 'center',
-            height: 40,
-            width: 100,
-            borderRadius: 5,
-            marginHorizontal: 5,
-        },
-        cancelButton: {
-            backgroundColor: '#ccc', // Cor de fundo para o botão de cancelar
-        },
-        scheduleButton: {
-            backgroundColor: '#007bff', // Cor de fundo para o botão de agendar
-        },
-        cancelButtonText: {
-            color: '#fff', // Cor do texto para o botão de cancelar
-            fontWeight: 'bold',
-        },
-        scheduleButtonText: {
-            color: '#fff', // Cor do texto para o botão de agendar
-            fontWeight: 'bold',
-        },
-        buttonText: {
-            color: '#fff',
-            fontWeight: 'bold',
-        },
-    });
-    
+};
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: '#739489',
+        paddingHorizontal: 20,
+        paddingTop: 20,
+    },
+    topBar: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginTop: 20,
+        marginBottom: 20,
+    },
+    nomeUsuario: {
+        fontSize: 24,
+        fontWeight: 'bold',
+    },
+    instrucoes: {
+        fontSize: 16,
+        marginBottom: 10,
+        color: 'white',
+    },
+    form: {
+        backgroundColor: '#fff',
+        padding: 20,
+        borderRadius: 10,
+        marginBottom: 20,
+    },
+    formTitle: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        marginBottom: 10,
+    },
+    input: {
+        backgroundColor: '#f9f9f9',
+        borderRadius: 5,
+        paddingHorizontal: 10,
+        paddingVertical: 5,
+        marginBottom: 10,
+    },
+    dataHoraContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
+    inputData: {
+        flex: 2,
+        marginRight: 5,
+    },
+    inputHora: {
+        flex: 1,
+        marginLeft: 5,
+    },
+    button: {
+        backgroundColor: '#38a69d',
+        borderRadius: 5,
+        paddingVertical: 10,
+        paddingHorizontal: 20,
+        alignItems: 'center',
+        marginTop: 10,
+    },
+    buttonText: {
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: 'bold',
+    },
+    consultaItem: {
+        backgroundColor: '#FFFFFF',
+        borderRadius: 10,
+        paddingHorizontal: 15,
+        paddingVertical: 10,
+        marginBottom: 10,
+        elevation: 2,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.2,
+        shadowRadius: 1.41,
+    },
+    buttonsContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginTop: 10,
+    },
+    buttonDelete: {
+        backgroundColor: 'red',
+    },
+});
+
+export default TelaHistoricoConsultas;
+

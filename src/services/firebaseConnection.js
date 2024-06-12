@@ -1,12 +1,9 @@
-// services/firebaseConnection.js
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
+import { getDatabase } from "firebase/database";
+import { getStorage } from "firebase/storage";  
 import { getFirestore } from "firebase/firestore";
-// import { GoogleSignin } from '@react-native-google-signin/google-signin';
 
-// GoogleSignin.configure({
-//   webClientId: '732529427575-blkk4fjl5m7gmaeouhk47j4sb43t28b6.apps.googleusercontent.com',
-// });
 
 const firebaseConfig = {
   apiKey: "AIzaSyAkEqRy21DwOLW7NZZAIWVNVYbwSm8oyOs",
@@ -15,11 +12,14 @@ const firebaseConfig = {
   storageBucket: "ye-gestao-de-saude-79630.appspot.com",
   messagingSenderId: "732529427575",
   appId: "1:732529427575:web:d5604168888069cf897272",
-  measurementId: "G-CBSQK5D5MR"
+  measurementId: "G-CBSQK5D5MR",
+  databaseURL: "https://ye-gestao-de-saude-79630-default-rtdb.firebaseio.com"
 };
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const firestore = getFirestore(app);
+const database = getDatabase(app);
+const storage = getStorage(app);  // Inicializar o storage
 
-export { auth, firestore };
+export { auth, firestore, database, storage };
