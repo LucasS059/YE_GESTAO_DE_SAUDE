@@ -35,5 +35,5 @@ yarn-error.*
 *.tsbuildinfo
 
 
-.anotação.txt
-.firebaseConnection.js
+.anotação
+.firebaseConnection
