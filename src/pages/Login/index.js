@@ -1,9 +1,23 @@
+// Login.js
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Keyboard, TouchableWithoutFeedback, Alert } from 'react-native';
-import * as Animatable from "react-native-animatable";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  Keyboard,
+  TouchableWithoutFeedback,
+  Alert
+} from 'react-native';
+import {
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  sendPasswordResetEmail
+} from 'firebase/auth';
+import { auth } from '../../services/firebaseConnection';
 import { useNavigation } from '@react-navigation/native';
-import { signInWithEmailAndPassword, sendPasswordResetEmail, onAuthStateChanged } from 'firebase/auth';
-import { auth } from "../../services/firebaseConnection";
+
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -11,23 +25,25 @@ export default function Login() {
   const [errorMessage, setErrorMessage] = useState('');
   const navigation = useNavigation();
 
+  // Mapeamento de mensagens de erro
   const errorMessages = {
     'auth/wrong-password': 'Senha incorreta. Tente novamente.',
     'auth/invalid-email': 'Usuário não encontrado. Verifique o email e tente novamente.',
-    'auth/invalid-credential': 'Usuário não encontrado. Verifique a sua senha e tente novamente.',
-    'auth/too-many-requests': 'Opa! Parece que algo deu errado. O acesso a esta conta foi temporariamente desativado devido a várias tentativas de login inválidas. Você pode restaurá-lo imediatamente redefinindo sua senha ou tentar novamente mais tarde. Agradecemos sua compreensão e paciência enquanto trabalhamos para resolver isso.'
+    'auth/invalid-credential': 'Usuário não encontrado. Verifique sua senha e tente novamente.',
+    'auth/too-many-requests': 'A conta foi temporariamente desativada devido a várias tentativas de login inválidas. Tente redefinir sua senha ou aguarde um pouco.'
   };
 
+  // Listener para mudanças de autenticação
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
+        // Se o usuário estiver logado, redireciona para a tela principal
         navigation.navigate('TelaPrincipal');
       }
     }, (error) => {
-      console.error('Erro durante a verificação do estado de autenticação:', error);
+      console.error('Erro ao verificar o estado de autenticação:', error);
     });
-
-    return () => unsubscribe(); 
+    return () => unsubscribe();
   }, []);
 
   async function login() {
@@ -35,7 +51,8 @@ export default function Login() {
       await signInWithEmailAndPassword(auth, email, password);
       navigation.navigate('TelaPrincipal');
     } catch (error) {
-      setErrorMessage(errorMessages[error.code] || 'Ocorreu um erro ao fazer login. Tente novamente.');
+      const msg = errorMessages[error.code] || 'Ocorreu um erro ao fazer login. Tente novamente.';
+      setErrorMessage(msg);
     }
   }
 
@@ -44,7 +61,6 @@ export default function Login() {
       Alert.alert('Erro', 'Por favor, insira seu email para redefinir a senha.');
       return;
     }
-
     try {
       await sendPasswordResetEmail(auth, email);
       Alert.alert('Sucesso', 'Um email para redefinir sua senha foi enviado.');
@@ -56,43 +72,31 @@ export default function Login() {
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <View style={styles.container}>
-        <Animatable.View animation="fadeInLeft" delay={500} style={styles.containerHeader}>
-          <Text style={styles.message}>Bem Vindo(a)</Text>
-        </Animatable.View>
-
-        <Animatable.View animation="fadeInUp" style={styles.containerForm}>
-          <Text style={styles.title}>Email</Text>
-          <TextInput 
-            placeholder='Digite seu email' 
-            style={styles.input} 
-            keyboardType="email-address"
-            value={email}
-            onChangeText={setEmail} 
-          />
-
-          <Text style={styles.title}>Senha</Text>
-          <TextInput 
-            placeholder='Digite sua senha' 
-            style={styles.input} 
-            secureTextEntry 
-            value={password}
-            onChangeText={setPassword}        
-          />
-
-          {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
-
-          <TouchableOpacity style={styles.button} onPress={login}>
-            <Text style={styles.buttonText}>Acessar</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.resetButton} onPress={resetPassword}>
+        <Text style={styles.title}>Login</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Digite seu email"
+          keyboardType="email-address"
+          value={email}
+          onChangeText={setEmail}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Digite sua senha"
+          secureTextEntry
+          value={password}
+          onChangeText={setPassword}
+        />
+        {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
+        <TouchableOpacity style={styles.button} onPress={login}>
+          <Text style={styles.buttonText}>Acessar</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.resetButton} onPress={resetPassword}>
           <Text style={styles.resetButtonText}>Esqueceu a senha?</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.buttonRegister} onPress={() => navigation.navigate('Cadastro')}>
-            <Text style={styles.registerText}>Não possui uma conta? Cadastre-se</Text>
-          </TouchableOpacity>
-        </Animatable.View>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.registerButton} onPress={() => navigation.navigate('Cadastro')}>
+          <Text style={styles.registerText}>Não possui conta? Cadastre-se</Text>
+        </TouchableOpacity>
       </View>
     </TouchableWithoutFeedback>
   );
@@ -101,75 +105,57 @@ export default function Login() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#739489'
-  },
-  containerHeader: {
-    marginTop: '14%',
-    marginBottom: '8%',
-    paddingStart: '5%',
-  },
-  message: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#fff'
-  },
-  containerForm: {
-    backgroundColor: '#fff',
-    flex: 1,
-    borderTopLeftRadius: 25,
-    borderTopRightRadius: 25,
-    paddingStart: '5%',
-    paddingEnd: '5%',
-    paddingTop: 25,
+    backgroundColor: '#739489',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20
   },
   title: {
-    fontSize: 20,
-    marginTop: 28,
-    color: '#333'
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginBottom: 20
   },
   input: {
-    borderBottomWidth: 1,
-    height: 40,
-    marginBottom: 12,
-    fontSize: 16,
-    borderColor: '#ccc',
-    paddingLeft: 10
+    width: '100%',
+    height: 50,
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    paddingHorizontal: 15,
+    marginVertical: 10
   },
   button: {
     backgroundColor: '#38a69d',
     width: '100%',
-    borderRadius: 50,
-    paddingVertical: 12,
-    marginTop: 14,
+    borderRadius: 8,
+    paddingVertical: 15,
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
+    marginVertical: 10
   },
   buttonText: {
     color: '#fff',
     fontSize: 18,
     fontWeight: 'bold'
   },
-  buttonRegister: {
-    marginTop: 14,
-    alignSelf: 'center'
+  resetButton: {
+    marginTop: 10
+  },
+  resetButtonText: {
+    color: '#fff',
+    fontSize: 16
+  },
+  registerButton: {
+    marginTop: 20
   },
   registerText: {
-    color: '#A1A1A1'
+    color: '#fff',
+    fontSize: 16
   },
   errorText: {
     color: 'red',
-    fontSize: 14,
-    marginBottom: 12,
-    textAlign: 'center',
-  },
-  resetButton: {
-    marginTop: 12,
-    alignSelf: 'center'
-  },
-  resetButtonText: {
-    color: '#38a69d',
-    fontSize: 14
+    fontSize: 16,
+    marginVertical: 5,
+    textAlign: 'center'
   }
 });
-
-           

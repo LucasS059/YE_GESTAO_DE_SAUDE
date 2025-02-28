@@ -418,7 +418,7 @@ export default function TelaPrincipal() {
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.navButton}
-              onPress={logout}
+              onPress={() => navigation.navigate(logout())}
             >
               <FontAwesome5 name="sign-out-alt" size={24} color="red" />
               <Text style={styles.navButtonText}>Sair</Text>

@@ -8,17 +8,17 @@ import { auth } from "../../services/firebaseConnection";
 export default function BemVindo() {
   const navigation = useNavigation();
 
-  // useEffect(() => {
-  //   const unsubscribe = onAuthStateChanged(auth, (user) => {
-  //     if (user) {
-  //       navigation.navigate('TelaPrincipal');
-  //     }
-  //   }, (error) => {
-  //     console.error('Erro durante a verificação do estado de autenticação:', error);
-  //   });
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        navigation.navigate('TelaPrincipal');
+      }
+    }, (error) => {
+      console.error('Erro durante a verificação do estado de autenticação:', error);
+    });
 
-  //   return () => unsubscribe(); 
-  // }, []);
+    return () => unsubscribe(); 
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -66,6 +66,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 25,
     borderTopRightRadius: 25,
     padding: '5%',
+    paddingTop: '20%',
     width: '100%',
     alignItems: 'center',
   },

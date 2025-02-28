@@ -116,206 +116,219 @@ export default function Perfil() {
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1 }}
+      style={styles.wrapper}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <ScrollView>
-        <View style={styles.container}>
-          <View style={styles.header}>
-            <TouchableOpacity onPress={() => navigation.navigate('TelaPrincipal')} style={styles.homeButton}>
-              <Icon name="home" size={30} color="white" />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={isEditing ? handleSelectImage : null}>
-              <Image 
-                source={profilePic ? { uri: profilePic } : require('../../assets/usuario.png')}
-                style={styles.profilePic}
-              />
-            </TouchableOpacity>
-            <Text style={styles.userName}>{userName}</Text>
-          </View>
+      <ScrollView contentContainerStyle={styles.container}>
+        {/* Header simples */}
+        <View style={styles.header}>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('TelaPrincipal')}
+            style={styles.backButton}
+          >
+            <Icon name="arrow-left" size={24} color="white" />
+          </TouchableOpacity>
 
-          <View style={styles.infoContainer}>
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Nome Completo</Text>
-              <TextInput 
-                style={styles.input} 
-                value={userName}
-                onChangeText={setUserName}
-                editable={isEditing}
-              />
-            </View>
+          <Text style={styles.headerTitle}>Perfil</Text>
+        </View>
 
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Data de Nascimento</Text>
-              <TextInput 
-                style={styles.input} 
-                value={birthDate}
-                onChangeText={setBirthDate}
-                editable={isEditing}
-              />
-            </View>
+        {/* Avatar e informações básicas */}
+        <View style={styles.avatarContainer}>
+          <Image
+            source={require('../../assets/usuario.png')}
+            style={styles.avatar}
+          />
+          <Text style={styles.nameText}>{userName}</Text>
+          <Text style={styles.emailText}>{email}</Text>
+        </View>
 
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Email</Text>
-              <TextInput 
-                style={styles.input} 
-                value={email}
-                onChangeText={setEmail}
-                editable={isEditing}
-              />
-            </View>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Telefone</Text>
-              <TextInput 
-                style={styles.input} 
-                value={phone}
-                onChangeText={setPhone}
-                editable={isEditing}
-              />
-            </View>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Endereço</Text>
-              <TextInput 
-                style={styles.input} 
-                value={address}
-                onChangeText={setAddress}
-                editable={isEditing}
-              />
-            </View>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Gênero</Text>
-              <TextInput 
-                style={styles.input} 
-                value={gender}
-                onChangeText={setGender}
-                editable={isEditing}
-              />
-            </View>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>País</Text>
-              <TextInput 
-                style={styles.input} 
-                value={country}
-                onChangeText={setCountry}
-                editable={isEditing}
-              />
-            </View>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Estado</Text>
-            <TextInput 
-             style={styles.input} 
-             value={state}
-             onChangeText={setState}
-             editable={isEditing}
-            />
-            </View>
-            <View style={styles.inputGroup}>
-          <Text style={styles.label}>Cidade</Text>
-          <TextInput 
-            style={styles.input} 
+        {/* Container com detalhes do perfil */}
+        <View style={styles.detailsContainer}>
+          <DetailRow
+            icon="birthday-cake"
+            label="Data de Nascimento"
+            value={birthDate}
+            onChangeText={setBirthDate}
+            editable={isEditing}
+          />
+          <DetailRow
+            icon="phone"
+            label="Telefone"
+            value={phone}
+            onChangeText={setPhone}
+            editable={isEditing}
+          />
+          <DetailRow
+            icon="map-marker"
+            label="Endereço"
+            value={address}
+            onChangeText={setAddress}
+            editable={isEditing}
+          />
+          <DetailRow
+            icon="venus-mars"
+            label="Gênero"
+            value={gender}
+            onChangeText={setGender}
+            editable={isEditing}
+          />
+          <DetailRow
+            icon="globe"
+            label="País"
+            value={country}
+            onChangeText={setCountry}
+            editable={isEditing}
+          />
+          <DetailRow
+            icon="flag"
+            label="Estado"
+            value={state}
+            onChangeText={setState}
+            editable={isEditing}
+          />
+          <DetailRow
+            icon="building"
+            label="Cidade"
             value={city}
             onChangeText={setCity}
             editable={isEditing}
           />
         </View>
 
-        {isEditing ? (
-          <TouchableOpacity 
-            style={[styles.button, styles.buttonSave]} 
-            onPress={handleSaveChanges}
-          >
-            <Text style={[styles.buttonText, styles.buttonTextSave]}>Salvar</Text>
-          </TouchableOpacity>
-        ) : (
-          <TouchableOpacity style={styles.button} onPress={() => setIsEditing(true)}>
-            <Text style={styles.buttonText}>Editar</Text>
-          </TouchableOpacity>
-        )}
-
-        <TouchableOpacity style={styles.button} onPress={handleResetPassword}>
-          <Text style={styles.buttonText}>Redefinir Senha</Text>
+        {/* Botão de Edição/Salvamento */}
+        <TouchableOpacity
+          style={styles.editButton}
+          onPress={() => {
+            if (isEditing) {
+              // Se já está editando, agora vamos salvar as mudanças
+              handleSaveChanges();
+            } else {
+              // Se não está editando, ativa o modo de edição
+              setIsEditing(true);
+            }
+          }}
+        >
+          <Text style={styles.editButtonText}>
+            {isEditing ? 'Salvar' : 'Editar'}
+          </Text>
         </TouchableOpacity>
-      </View>
-    </View>
-  </ScrollView>
-</KeyboardAvoidingView>
+      </ScrollView>
+    </KeyboardAvoidingView>
+  );
+}
 
-);
+const DetailRow = ({ icon, label, value, onChangeText, editable }) => {
+  return (
+    <View style={detailStyles.row}>
+      <Icon name={icon} size={20} color="#739489" style={detailStyles.icon} />
+      <Text style={detailStyles.label}>{label}</Text>
+      <TextInput
+        style={detailStyles.input}
+        value={value}
+        onChangeText={onChangeText}
+        editable={editable}
+        placeholder="Não informado"
+      />
+    </View>
+  );
 };
 
+const detailStyles = StyleSheet.create({
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 8,
+  },
+  icon: {
+    marginRight: 10,
+  },
+  label: {
+    flex: 1,
+    fontSize: 16,
+    color: '#333',
+  },
+  input: {
+    flex: 1,
+    fontSize: 16,
+    color: '#333',
+    backgroundColor: '#f1f3f5',
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    borderRadius: 10,
+    textAlign: 'right',
+  },
+});
+
 const styles = StyleSheet.create({
-container: {
-flex: 1,
-backgroundColor: '#739489',
-padding: 20,
-justifyContent: 'center',
-},
-header: {
-alignItems: 'center',
-marginBottom: 30,
-},
-homeButton: {
-position: 'absolute',
-top: 0,
-left: 0,
-marginTop: 30,
-margin: 10,
-},
-profilePic: {
-width: 120,
-height: 120,
-borderRadius: 60,
-marginTop: 30,
-marginBottom: 10,
-},
-userName: {
-fontSize: 24,
-fontWeight: 'bold',
-color: 'white',
-marginBottom: 10,
-},
-infoContainer: {
-backgroundColor: 'white',
-borderRadius: 20,
-padding: 20,
-},
-inputGroup: {
-marginBottom: 15,
-},
-label: {
-fontSize: 16,
-color: '#333',
-marginBottom: 5,
-},
-input: {
-backgroundColor: '#f9f9f9',
-borderRadius: 10,
-padding: 10,
-fontSize: 16,
-color: '#333',
-},
-button: {
-backgroundColor: '#38a69d',
-borderRadius: 20,
-paddingVertical: 15,
-paddingHorizontal: 25,
-alignItems: 'center',
-marginBottom: 15,
-},
-buttonText: {
-fontSize: 18,
-fontWeight: 'bold',
-color: 'white',
-},
-buttonSave: {
-backgroundColor: '#33cc99',
-},
-buttonTextSave: {
-color: '#fff',
-},
+  wrapper: {
+    flex: 1,
+    backgroundColor: '#e9ecef', // Fundo que cobre a página inteira
+  },
+  container: {
+    paddingBottom: 30,
+  },
+  header: {
+    backgroundColor: '#739489',
+    paddingHorizontal: 20,
+    paddingTop: Platform.OS === 'ios' ? 40 : 20,
+    paddingBottom: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  backButton: {
+    marginRight: 10,
+  },
+  headerTitle: {
+    color: 'white',
+    fontSize: 24,
+    fontWeight: 'bold',
+  },
+  avatarContainer: {
+    alignItems: 'center',
+    marginTop: -40,
+    marginBottom: 20,
+  },
+  avatar: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    borderWidth: 4,
+    borderColor: 'white',
+    backgroundColor: '#fff',
+  },
+  nameText: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#333',
+    marginTop: 10,
+  },
+  emailText: {
+    fontSize: 16,
+    color: '#739489',
+    marginTop: 4,
+  },
+  detailsContainer: {
+    backgroundColor: 'white',
+    marginHorizontal: 20,
+    borderRadius: 15,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  editButton: {
+    backgroundColor: '#739489',
+    marginHorizontal: 20,
+    marginTop: 20,
+    paddingVertical: 15,
+    borderRadius: 25,
+    alignItems: 'center',
+  },
+  editButtonText: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
 });
